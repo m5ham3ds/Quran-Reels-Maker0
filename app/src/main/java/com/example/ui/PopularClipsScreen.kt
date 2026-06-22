@@ -245,7 +245,8 @@ fun PopularClipsScreen(
     val customClipsJson by settingsManager.customCuratedClips.collectAsState(initial = "[]")
 
     val saveCustomClipsToSettings: (List<CuratedClip>) -> Unit = { currentList ->
-        scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 val customOnly = currentList.filter { it.id.startsWith("clip_custom") }
                 val array = org.json.JSONArray()

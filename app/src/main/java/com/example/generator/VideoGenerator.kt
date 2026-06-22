@@ -23,8 +23,6 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import com.example.settings.SettingsManager
-import com.yausername.youtubedl_android.YoutubeDL
-import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -180,14 +178,7 @@ class VideoGenerator {
         SystemDiagnosticTracker.addLog("PROCESS_START", "بدء تصنيع مقطع الريدز الجديد (Start generate reel). السورة: $surah, البداية: $startAyah, النهاية: $endAyah, القارئ: $reciterId, الترجمة: $showTranslation")
         threadError = null
 
-        try {
-            // FFmpeg init removed, YoutubeDL init decoupled to prevent crash
-            com.yausername.youtubedl_android.YoutubeDL.getInstance().init(context.applicationContext)
-            SystemDiagnosticTracker.addLog("YOUTUBEDL", "تم تهيئة مكتبة Yt-dlp بنجاح")
-        } catch (e: Exception) {
-            SystemDiagnosticTracker.addLog("YOUTUBEDL", "تحذير: قد تفشل تهيئة Yt-dlp - ${e.message}\n${android.util.Log.getStackTraceString(e)}")
-            e.printStackTrace()
-        }
+        // FFmpeg and YoutubeDL dependencies removed, processing now uses Cobalt API entirely.
         var videoCodec: MediaCodec? = null
         var muxer: MediaMuxer? = null
         var bgBitmap: Bitmap? = null
