@@ -877,17 +877,17 @@ fun PopularClipsScreen(
                                                     if (isSocialUrl) {
                                                         scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                                             try {
-                                                                val mediaTypeUrl = "application/json; charset=utf-8".toMediaTypeOrNull()
-                                                                val requestBody = "{\"url\":\"${clip.audioUrl}\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}".toRequestBody(mediaTypeUrl)
+                                                                val jsonBody = "{\"url\":\"${clip.audioUrl}\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}"
+                                                                val requestBody = okhttp3.RequestBody.create("application/json".toMediaTypeOrNull(), jsonBody.toByteArray(Charsets.UTF_8))
                                                                 
                                                                 val request = okhttp3.Request.Builder()
                                                                     .url("https://api.cobalt.tools/")
                                                                     .post(requestBody)
-                                                                    .addHeader("Accept", "application/json")
-                                                                    .addHeader("Content-Type", "application/json")
-                                                                    .addHeader("Origin", "https://cobalt.tools")
-                                                                    .addHeader("Referer", "https://cobalt.tools/")
-                                                                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                                                                    .header("Accept", "application/json")
+                                                                    .header("Content-Type", "application/json")
+                                                                    .header("Origin", "https://cobalt.tools")
+                                                                    .header("Referer", "https://cobalt.tools/")
+                                                                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                                                                     .build()
                                                                     
                                                                 val okClient = okhttp3.OkHttpClient()

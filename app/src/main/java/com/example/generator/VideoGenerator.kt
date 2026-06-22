@@ -1197,17 +1197,17 @@ class VideoGenerator {
             
             SystemDiagnosticTracker.addLog("DOWNLOAD", "بدء جلب الوسائط عبر السحابة البديلة (Cobalt) من الرابط: $url")
             try {
-                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-                val requestBody = "{\"url\":\"$url\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}".toRequestBody(mediaType)
+                val jsonBody = "{\"url\":\"$url\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}"
+                val requestBody = okhttp3.RequestBody.create("application/json".toMediaTypeOrNull(), jsonBody.toByteArray(Charsets.UTF_8))
                 
                 val request = Request.Builder()
                     .url("https://api.cobalt.tools/")
                     .post(requestBody)
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Origin", "https://cobalt.tools")
-                    .addHeader("Referer", "https://cobalt.tools/")
-                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Origin", "https://cobalt.tools")
+                    .header("Referer", "https://cobalt.tools/")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                     .build()
                     
                 val response = client.newCall(request).execute()
