@@ -1199,34 +1199,58 @@ class VideoGenerator {
             try {
                 val jsonBody = "{\"url\":\"$url\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}"
                 
-                val connection = java.net.URL("https://api.cobalt.tools/").openConnection() as java.net.HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Accept", "application/json")
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.setRequestProperty("Origin", "https://cobalt.tools")
-                connection.setRequestProperty("Referer", "https://cobalt.tools/")
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                connection.doOutput = true
+                val cobaltInstances = listOf(
+                    "https://co.wuk.sh/api/json",
+                    "https://cobalt.qewertyy.dev/",
+                    "https://cobalt.mindsolo.net/",
+                    "https://api.cobalt.tools/api/json",
+                    "https://api.cobalt.tools/"
+                )
                 
-                connection.outputStream.use { os ->
-                    val input = jsonBody.toByteArray(Charsets.UTF_8)
-                    os.write(input, 0, input.size)
+                var streamUrl: String? = null
+                var lastError: String? = null
+                
+                for (instanceUrl in cobaltInstances) {
+                    try {
+                        val hostURL = java.net.URL(instanceUrl)
+                        val originUrl = "${hostURL.protocol}://${hostURL.host}"
+                        
+                        val connection = java.net.URL(instanceUrl).openConnection() as java.net.HttpURLConnection
+                        connection.requestMethod = "POST"
+                        connection.setRequestProperty("Accept", "application/json")
+                        connection.setRequestProperty("Content-Type", "application/json")
+                        connection.setRequestProperty("Origin", originUrl)
+                        connection.setRequestProperty("Referer", "$originUrl/")
+                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                        connection.doOutput = true
+                        
+                        connection.outputStream.use { os ->
+                            val input = jsonBody.toByteArray(Charsets.UTF_8)
+                            os.write(input, 0, input.size)
+                        }
+                        
+                        val responseCode = connection.responseCode
+                        if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                            val body = connection.inputStream.bufferedReader().use { it.readText() }
+                            val json = org.json.JSONObject(body)
+                            if (json.has("url")) {
+                                streamUrl = json.getString("url")
+                                break
+                            }
+                        } else {
+                            val errorBody = try { connection.errorStream?.bufferedReader()?.use { it.readText() } } catch(e: Exception) { "" }
+                            lastError = "Code: $responseCode Body: $errorBody"
+                        }
+                    } catch (e: Exception) {
+                        lastError = e.message
+                    }
                 }
                 
-                val responseCode = connection.responseCode
-                if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
-                    val body = connection.inputStream.bufferedReader().use { it.readText() }
-                    val json = org.json.JSONObject(body)
-                    if (json.has("url")) {
-                        val streamUrl = json.getString("url")
-                        SystemDiagnosticTracker.addLog("DOWNLOAD", "تم استخراج الرابط بنجاح، جاري التحميل...")
-                        downloadAudio(streamUrl, destFile)
-                    } else {
-                        throw java.lang.Exception("Cobalt API failed: $body")
-                    }
+                if (streamUrl != null) {
+                    SystemDiagnosticTracker.addLog("DOWNLOAD", "تم استخراج الرابط بنجاح، جاري التحميل...")
+                    downloadAudio(streamUrl, destFile)
                 } else {
-                    val errorBody = try { connection.errorStream?.bufferedReader()?.use { it.readText() } } catch(e: Exception) { "" }
-                    throw java.lang.Exception("Cobalt API returned: $responseCode $errorBody")
+                    throw java.lang.Exception("All Cobalt instances failed. Last error: $lastError")
                 }
             } catch (e: Exception) {
                 SystemDiagnosticTracker.addLog("ERROR", "فشل جلب الوسائط عبر السحابة: ${e.message}")
