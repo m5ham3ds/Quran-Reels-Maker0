@@ -878,28 +878,28 @@ fun PopularClipsScreen(
                                                         scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                                             try {
                                                                 val jsonBody = "{\"url\":\"${clip.audioUrl}\",\"aFormat\":\"mp3\",\"isAudioOnly\":true}"
-                                                                val requestBody = okhttp3.RequestBody.create("application/json".toMediaTypeOrNull(), jsonBody.toByteArray(Charsets.UTF_8))
-                                                                
-                                                                val request = okhttp3.Request.Builder()
-                                                                    .url("https://api.cobalt.tools/")
-                                                                    .post(requestBody)
-                                                                    .header("Accept", "application/json")
-                                                                    .header("Content-Type", "application/json")
-                                                                    .header("Origin", "https://cobalt.tools")
-                                                                    .header("Referer", "https://cobalt.tools/")
-                                                                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                                                                    .build()
-                                                                    
-                                                                val okClient = okhttp3.OkHttpClient()
-                                                                val response = okClient.newCall(request).execute()
                                                                 
                                                                 var directUrl: String? = null
-                                                                if (response.isSuccessful) {
-                                                                    val body = response.body?.string() ?: ""
+                                                                
+                                                                val connection = java.net.URL("https://api.cobalt.tools/").openConnection() as java.net.HttpURLConnection
+                                                                connection.requestMethod = "POST"
+                                                                connection.setRequestProperty("Accept", "application/json")
+                                                                connection.setRequestProperty("Content-Type", "application/json")
+                                                                connection.setRequestProperty("Origin", "https://cobalt.tools")
+                                                                connection.setRequestProperty("Referer", "https://cobalt.tools/")
+                                                                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like developments) Chrome/120.0.0.0 Safari/537.36")
+                                                                connection.doOutput = true
+                                                                
+                                                                connection.outputStream.use { os ->
+                                                                    val input = jsonBody.toByteArray(Charsets.UTF_8)
+                                                                    os.write(input, 0, input.size)
+                                                                }
+                                                                
+                                                                val responseCode = connection.responseCode
+                                                                if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                                                                    val body = connection.inputStream.bufferedReader().use { it.readText() }
                                                                     val json = org.json.JSONObject(body)
-                                                                    if (json.has("url")) {
-                                                                        directUrl = json.getString("url")
-                                                                    }
+                                                                    if (json.has("url")) { directUrl = json.getString("url") }
                                                                 }
                                                                 
                                                                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
