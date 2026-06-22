@@ -403,9 +403,14 @@ class SettingsManager(private val context: Context) {
         context.dataStore.edit { it[BACKGROUND_KEYWORDS] = value }
     }
 
-    val customCuratedClips: Flow<String> = context.dataStore.data.map { it[CUSTOM_CURATED_CLIPS] ?: "[]" }
-    
-    suspend fun saveCustomCuratedClips(clipsJson: String) {
-        context.dataStore.edit { it[CUSTOM_CURATED_CLIPS] = clipsJson }
+    private val sharedPrefs = context.getSharedPreferences("quran_reels_custom_clips", Context.MODE_PRIVATE)
+
+    fun getCustomCuratedClipsSync(): String {
+        return sharedPrefs.getString("custom_curated_clips", "[]") ?: "[]"
     }
+
+    fun saveCustomCuratedClipsSync(clipsJson: String) {
+        sharedPrefs.edit().putString("custom_curated_clips", clipsJson).commit()
+    }
+
 }

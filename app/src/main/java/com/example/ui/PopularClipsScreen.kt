@@ -242,32 +242,33 @@ fun PopularClipsScreen(
     var clipToDelete by remember { mutableStateOf<CuratedClip?>(null) }
     val scope = rememberCoroutineScope()
 
-    val customClipsJson by settingsManager.customCuratedClips.collectAsState(initial = "[]")
+    var customClipsJson by remember { mutableStateOf("[]") }
+    
+    LaunchedEffect(Unit) {
+        customClipsJson = settingsManager.getCustomCuratedClipsSync()
+    }
 
     val saveCustomClipsToSettings: (List<CuratedClip>) -> Unit = { currentList ->
-        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                val customOnly = currentList.filter { it.id.startsWith("clip_custom") }
-                val array = org.json.JSONArray()
-                customOnly.forEach { clip ->
-                    val obj = org.json.JSONObject()
-                    obj.put("id", clip.id)
-                    obj.put("reciter", clip.reciter)
-                    obj.put("reciterId", clip.reciterId)
-                    obj.put("title", clip.title)
-                    obj.put("surah", clip.surah)
-                    obj.put("ayahStart", clip.ayahStart)
-                    obj.put("ayahEnd", clip.ayahEnd)
-                    obj.put("audioUrl", clip.audioUrl)
-                    obj.put("category", clip.category)
-                    obj.put("videoQuery", clip.videoQuery)
-                    array.put(obj)
-                }
-                settingsManager.saveCustomCuratedClips(array.toString())
-            } catch (e: Exception) {
-                e.printStackTrace()
+        try {
+            val customOnly = currentList.filter { it.id.startsWith("clip_custom") }
+            val array = org.json.JSONArray()
+            customOnly.forEach { clip ->
+                val obj = org.json.JSONObject()
+                obj.put("id", clip.id)
+                obj.put("reciter", clip.reciter)
+                obj.put("reciterId", clip.reciterId)
+                obj.put("title", clip.title)
+                obj.put("surah", clip.surah)
+                obj.put("ayahStart", clip.ayahStart)
+                obj.put("ayahEnd", clip.ayahEnd)
+                obj.put("audioUrl", clip.audioUrl)
+                obj.put("category", clip.category)
+                obj.put("videoQuery", clip.videoQuery)
+                array.put(obj)
             }
+            settingsManager.saveCustomCuratedClipsSync(array.toString())
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
